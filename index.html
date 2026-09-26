@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>SportSlot — бронирование спортивных занятий</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       ЭКРАН АВТОРИЗАЦИИ
+  ============================================================ -->
+  <section id="authPage" class="auth-page" hidden>
+    <div class="auth-card">
+      <div class="auth-brand">SportSlot</div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login">Вход</button>
+        <button class="auth-tab" data-auth-tab="signup">Регистрация</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <h1>Вход в SportSlot</h1>
+        <p class="subtitle">Введите email и пароль, чтобы продолжить</p>
+
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label for="loginPassword">Пароль</label>
+          <input id="loginPassword" type="password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <div id="loginError" class="auth-message auth-message-error" hidden></div>
+
+        <button type="submit" class="button button-primary button-block">Войти</button>
+      </form>
+
+      <form id="signupForm" class="auth-form" hidden>
+        <h1>Регистрация</h1>
+        <p class="subtitle">Создайте аккаунт SportSlot</p>
+
+        <div class="field">
+          <label for="signupName">Имя</label>
+          <input id="signupName" type="text" required placeholder="Алексей К.">
+        </div>
+
+        <div class="field">
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label for="signupPassword">Пароль</label>
+          <input id="signupPassword" type="password" required minlength="6" placeholder="минимум 6 символов" autocomplete="new-password">
+        </div>
+
+        <div class="field">
+          <label for="signupPasswordConfirm">Повторите пароль</label>
+          <input id="signupPasswordConfirm" type="password" required minlength="6" placeholder="ещё раз" autocomplete="new-password">
+        </div>
+
+        <div id="signupError" class="auth-message auth-message-error" hidden></div>
+        <div id="signupSuccess" class="auth-message auth-message-success" hidden></div>
+
+        <button type="submit" class="button button-primary button-block">Создать аккаунт</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ЗАГРУЗКА
+  ============================================================ -->
+  <div id="loadingPage" class="loading-page">
+    <div class="loading-spinner"></div>
+    <p>Загрузка SportSlot...</p>
+  </div>
+
+  <!-- ============================================================
+       ОСНОВНОЕ ПРИЛОЖЕНИЕ
+  ============================================================ -->
+  <div id="appRoot" hidden>
+
+    <header class="header">
+      <div class="brand">SportSlot</div>
+
+      <nav class="nav" aria-label="Основная навигация">
+        <button class="nav-link active" data-page="listPage" data-role="user">Мои записи</button>
+        <button class="nav-link" data-page="createPage" data-role="user">Создать запись</button>
+        <button class="nav-link" data-page="adminPage" data-role="admin" hidden>Все записи</button>
+        <button class="nav-link" data-page="helpPage">Справка</button>
+      </nav>
+
+      <div class="header-right">
+        <div class="user">
+          <div class="user-avatar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+            </svg>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="userName">—</span>
+            <span class="user-role" id="userRoleLabel">—</span>
+          </div>
+        </div>
+        <button id="logoutButton" class="button button-secondary button-small" type="button">Выйти</button>
+      </div>
+    </header>
+
+    <div id="successBanner" class="banner banner-success" hidden>
+      <span class="banner-icon">✓</span>
+      <span id="successBannerText"></span>
+    </div>
+
+    <div id="errorBanner" class="banner banner-error" hidden>
+      <span class="banner-icon">!</span>
+      <span id="errorBannerText"></span>
+    </div>
+
+    <main class="container">
+
+      <!-- МОИ ЗАПИСИ -->
+      <section id="listPage" class="page" hidden>
+        <div class="page-title-row">
+          <div>
+            <h1>Мои бронирования</h1>
+            <p class="subtitle">Управление вашими предстоящими и прошлыми спортивными занятиями</p>
+          </div>
+          <button id="openCreateButton" class="button button-primary">
+            <span class="plus">+</span> Новая запись
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input id="searchInput" type="text" placeholder="Поиск по виду спорта, тренеру или площадке...">
+          </div>
+          <div class="filters">
+            <button class="filter active" data-filter="all">Все</button>
+            <button class="filter" data-filter="upcoming">Предстоящие</button>
+            <button class="filter" data-filter="past">Прошедшие</button>
+          </div>
+        </div>
+
+        <div class="advanced-filters">
+          <select id="filterActivity">
+            <option value="">Все виды спорта</option>
+          </select>
+          <select id="filterStatus">
+            <option value="">Все статусы</option>
+            <option>Подтверждена</option>
+            <option>Посещено</option>
+            <option>Отменена</option>
+          </select>
+          <select id="filterSort">
+            <option value="date-desc">Сначала новые</option>
+            <option value="date-asc">Сначала старые</option>
+            <option value="activity">По виду спорта</option>
+          </select>
+        </div>
+
+        <div id="recordList" class="record-list"></div>
+      </section>
+
+      <!-- СОЗДАТЬ ЗАПИСЬ -->
+      <section id="createPage" class="page" hidden>
+        <div class="form-card">
+          <h1>Запись на занятие</h1>
+          <p class="subtitle">Заполните форму ниже, чтобы забронировать тренировку</p>
+          <div class="divider"></div>
+
+          <form id="recordForm" novalidate>
+
+            <div class="field">
+              <label for="activity">Вид спорта <span class="required">*</span></label>
+              <select id="activity" name="activity" required>
+                <option value="">Выберите вид спорта...</option>
+              </select>
+              <div class="field-error" id="activityError"></div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="date">Дата <span class="required">*</span></label>
+                <input id="date" name="date" type="date" required>
+                <div class="field-error" id="dateError"></div>
+              </div>
+
+              <div class="field">
+                <label for="time">Время <span class="required">*</span></label>
+                <select id="time" name="time" required>
+                  <option value="">Укажите время...</option>
+                  <option>09:00 - 10:00</option>
+                  <option>12:00 - 13:30</option>
+                  <option>14:00 - 15:30</option>
+                  <option>18:30 - 20:00</option>
+                </select>
+                <div class="field-error" id="timeError"></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="place">Место проведения</label>
+              <input id="place" name="place" type="text" placeholder="Например, Корт №3" maxlength="80">
+            </div>
+
+            <div class="field">
+              <label for="trainer">Тренер</label>
+              <select id="trainer" name="trainer">
+                <option value="">Любой свободный тренер</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="comment">Комментарий к записи</label>
+              <textarea id="comment" name="comment" rows="4"
+                        placeholder="Например, требования к инвентарю..."></textarea>
+            </div>
+
+            <button id="submitButton" class="button button-primary button-block" type="submit">
+              Записаться
+            </button>
+
+          </form>
+        </div>
+      </section>
+
+      <!-- КАРТОЧКА ЗАПИСИ -->
+      <section id="detailPage" class="page" hidden>
+        <div class="detail-card">
+          <div class="detail-header">
+            <div>
+              <div class="detail-label">ДЕТАЛИ БРОНИРОВАНИЯ</div>
+              <h1 id="detailTitle">—</h1>
+            </div>
+            <span id="detailStatus" class="status status-confirmed">—</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">ВИД СПОРТА</div>
+              <div class="detail-value" id="detailActivity">—</div>
+            </div>
+            <div>
+              <div class="detail-label">ДАТА И ВРЕМЯ</div>
+              <div class="detail-value" id="detailDate">—</div>
+            </div>
+            <div>
+              <div class="detail-label">ИНСТРУКТОР</div>
+              <div class="detail-value" id="detailTrainer">—</div>
+            </div>
+            <div>
+              <div class="detail-label">МЕСТО ПРОВЕДЕНИЯ</div>
+              <div class="detail-value" id="detailPlace">—</div>
+            </div>
+            <div id="detailClientBlock" hidden>
+              <div class="detail-label">КЛИЕНТ</div>
+              <div class="detail-value" id="detailClient">—</div>
+            </div>
+          </div>
+
+          <div class="detail-block">
+            <div class="detail-label">КОММЕНТАРИЙ</div>
+            <div class="detail-comment" id="detailComment">—</div>
+          </div>
+
+          <div class="detail-block" id="historyBlock" hidden>
+            <div class="detail-label">ИСТОРИЯ ИЗМЕНЕНИЙ</div>
+            <div id="historyList" class="history-list"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div id="detailActions" class="detail-actions"></div>
+
+          <button class="link-button" type="button" id="backToList">Назад к списку</button>
+        </div>
+      </section>
+
+      <!-- СПРАВКА -->
+      <section id="helpPage" class="page" hidden>
+        <div class="page-title-row">
+          <div>
+            <h1>Как пользоваться SportSlot</h1>
+            <p class="subtitle">Инструкция по бронированию спортивных площадок и занятий с тренером</p>
+          </div>
+        </div>
+
+        <div class="help-grid">
+          <div class="help-card">
+            <div class="help-number">1</div>
+            <h3>Выберите параметры</h3>
+            <p>Выберите вид спорта, подходящую свободную дату и удобное время в форме записи.</p>
+          </div>
+          <div class="help-card">
+            <div class="help-number">2</div>
+            <h3>Заполните форму</h3>
+            <p>Укажите предпочитательного тренера и при необходимости оставьте комментарий.</p>
+          </div>
+          <div class="help-card">
+            <div class="help-number">3</div>
+            <h3>Подтвердите запись</h3>
+            <p>Нажмите «Записаться». Ваша бронь мгновенно подтвердится системой.</p>
+          </div>
+          <div class="help-card">
+            <div class="help-number">4</div>
+            <h3>Оцените тренера</h3>
+            <p>После посещения вы можете оставить оценку и отзыв о занятии.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- АДМИН-ПАНЕЛЬ -->
+      <section id="adminPage" class="page" hidden>
+        <div class="page-title-row">
+          <div>
+            <h1>Панель администратора</h1>
+            <p class="subtitle">Управление всеми бронированиями и аналитика</p>
+          </div>
+        </div>
+
+        <div class="analytics-filter">
+          <label>Период:</label>
+          <select id="analyticsPeriod">
+            <option value="all">Всё время</option>
+            <option value="7">Последние 7 дней</option>
+            <option value="30">Последние 30 дней</option>
+          </select>
+          <label>Вид спорта:</label>
+          <select id="analyticsActivity">
+            <option value="">Все</option>
+          </select>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Всего записей</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Подтверждено</div>
+            <div class="stat-value stat-green" id="statConfirmed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Посещено</div>
+            <div class="stat-value stat-blue" id="statVisited">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Отменено</div>
+            <div class="stat-value stat-red" id="statCancelled">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Пользователей</div>
+            <div class="stat-value" id="statUsers">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Оценок</div>
+            <div class="stat-value" id="statReviews">0</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Записи по видам спорта</div>
+            <canvas id="chartActivities"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Распределение по статусам</div>
+            <canvas id="chartStatuses"></canvas>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input id="adminSearchInput" type="text" placeholder="Поиск по клиенту, виду спорта или тренеру...">
+          </div>
+          <div class="filters">
+            <button class="filter active" data-admin-filter="all">Все</button>
+            <button class="filter" data-admin-filter="Подтверждена">Подтверждённые</button>
+            <button class="filter" data-admin-filter="Посещено">Посещённые</button>
+            <button class="filter" data-admin-filter="Отменена">Отменённые</button>
+          </div>
+        </div>
+
+        <div id="adminList" class="record-list"></div>
+      </section>
+
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО ОТМЕНЫ -->
+    <dialog id="confirmDialog" class="dialog">
+      <div class="dialog-icon">!</div>
+      <h2>Отменить запись?</h2>
+      <p id="dialogText">Вы уверены, что хотите отменить запись?</p>
+      <div class="dialog-actions">
+        <button id="dismissCancelButton" class="button button-secondary" type="button">Назад</button>
+        <button id="confirmCancelButton" class="button button-danger" type="button">Отменить запись</button>
+      </div>
+    </dialog>
+
+    <!-- МОДАЛЬНОЕ ОКНО "ПОСЕЩЕНО" -->
+    <dialog id="confirmVisitDialog" class="dialog">
+      <div class="dialog-icon dialog-icon-blue">✓</div>
+      <h2>Отметить как посещённое?</h2>
+      <p id="visitDialogText">Подтвердите, что клиент посетил занятие.</p>
+      <div class="dialog-actions">
+        <button id="dismissVisitButton" class="button button-secondary" type="button">Назад</button>
+        <button id="confirmVisitButton" class="button button-primary" type="button">Отметить</button>
+      </div>
+    </dialog>
+
+    <!-- МОДАЛЬНОЕ ОКНО ОЦЕНКИ -->
+    <dialog id="reviewDialog" class="dialog">
+      <div class="dialog-icon dialog-icon-blue">★</div>
+      <h2>Оцените тренера</h2>
+      <p>Как вам занятие?</p>
+
+      <div class="rating-stars" id="ratingStars">
+        <button type="button" data-rating="1">★</button>
+        <button type="button" data-rating="2">★</button>
+        <button type="button" data-rating="3">★</button>
+        <button type="button" data-rating="4">★</button>
+        <button type="button" data-rating="5">★</button>
+      </div>
+
+      <div class="field">
+        <label for="reviewComment">Комментарий (необязательно)</label>
+        <textarea id="reviewComment" rows="3" placeholder="Что понравилось?"></textarea>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="dismissReviewButton" class="button button-secondary" type="button">Отмена</button>
+        <button id="submitReviewButton" class="button button-primary" type="button">Отправить</button>
+      </div>
+    </dialog>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

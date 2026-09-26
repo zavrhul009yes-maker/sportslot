@@ -1,0 +1,27 @@
+# Секреты и переменные окружения
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Система
+.DS_Store
+Thumbs.db
+
+# Supabase (локальные данные)
+supabase/.branches
+supabase/.temp
+
+# Временные файлы
+*.log
+*.tmp
